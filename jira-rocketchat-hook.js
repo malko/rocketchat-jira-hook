@@ -28,7 +28,7 @@ class Script {
 			let issue = data.issue;
 			let baseJiraUrl = issue.self.replace(/\/rest\/.*$/, '');
 			let user = data.user;
-			let assignedTo = (issue.fields.assigned && issue.fields.assigned.name !== user.name) ? `, assigned to ${issue.fields.assigned.name}` : '';
+			let assignedTo = (issue.fields.assignee && issue.fields.assignee.name !== user.name) ? `, assigned to ${issue.fields.assignee.displayName}` : '';
 			let issueSummary = `[${issue.key}](${baseJiraUrl}/browse/${issue.key}) ${issue.fields.summary} _(${issue.fields.priority.name.replace(/^\s*\d*\.\s*/, '')}${assignedTo})_`;
 			let message = {
 				icon_url: (issue.fields.project && issue.fields.project.avatarUrls && issue.fields.project.avatarUrls['48x48']) || JIRA_LOGO
