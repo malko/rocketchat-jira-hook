@@ -32,7 +32,7 @@ class Script {
 				//we dont have enough info
 				let ignoreMsg="Not enough info on issue. Event ignored.";
 				if(data.webhookEvent){
-					ignoreMsg=`Event ${data.webhookEvent}. ${ignoreMsg}`;
+					ignoreMsg=`Jira event ${data.webhookEvent}. ${ignoreMsg}`;
 				}
 				console.log(ignoreMsg);
 				return;
@@ -71,19 +71,33 @@ class Script {
 					console.log("logs:"+logs.length);
 					logs.length && message.attachments.push(prepareAttachment(data, `*Updated* ${issueSummary}:\n  - ${logs.join('\n  - ')}`));
 					console.log("message:"+JSON.stringify(message,null,2));
-				}
-
-				if (data.comment) { // comment update
-					let comment = data.comment;
-					let action = comment.created !== comment.updated ? 'Updated comment' : 'Commented';
-					message.attachments.push(prepareAttachment(data, `*${action}* on ${issueSummary}:\n${stripDesc(comment.body)}`));
+				} else {
+					//we dont have change logs
+					let ignoreMsg="No change log items. Event ignored.";
+					if(data.webhookEvent){
+						ignoreMsg=`Jira event ${data.webhookEvent}. ${ignoreMsg}`;
+					}
+					console.log(ignoreMsg);
+					return;
 				}
 			} else if (data.webhookEvent === 'comment_created') {
 				let comment = data.comment;
 				console.log(comment);
 				let commentAuthoring=comment.author&&comment.author.displayName?` by ${comment.author.displayName}`:'';
 				data.user=comment.author;
-				message.attachments.push(prepareAttachment(data, `Comment Created for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
+				message.attachments.push(prepareAttachment(data, `Comment created for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
+			} else if (data.webhookEvent === 'comment_updated') {
+				let comment = data.comment;
+				console.log(comment);
+				let commentAuthoring=comment.author&&comment.author.displayName?` by ${comment.author.displayName}`:'';
+				data.user=comment.author;
+				message.attachments.push(prepareAttachment(data, `Comment updated for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
+			} else if (data.webhookEvent === 'comment_deleted') {
+				let comment = data.comment;
+				console.log(comment);
+				let commentAuthoring=comment.author&&comment.author.displayName?` by ${comment.author.displayName}`:'';
+				data.user=comment.author;
+				message.attachments.push(prepareAttachment(data, `Comment deleted for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
 			} else if (data.webhookEvent === 'worklog_created'){
 				let worklog=data.worklog;
 				let worklogAuthoring=worklog.author&&worklog.author.displayName?` by ${worklog.author.displayName}`:'';
@@ -91,9 +105,9 @@ class Script {
 				message.attachments.push(prepareAttachment(data, `Worklog created for ${issueSummary}:\n\`\`\`\n${stripDesc(worklog.comment)}\n\`\`\`\n*time spent*: ${worklog.timeSpent}\n${worklogAuthoring}`));
 			} else {
 				//we dont have enough info
-				let ignoreMsg="No handler for event. Event ignored.";
+				let ignoreMsg="No handler for the event. Event ignored.";
 				if(data.webhookEvent){
-					ignoreMsg=`Event ${data.webhookEvent}. ${ignoreMsg}`;
+					ignoreMsg=`Jira event ${data.webhookEvent}. ${ignoreMsg}`;
 				}
 				console.log(ignoreMsg);
 				return;
