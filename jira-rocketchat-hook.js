@@ -1,40 +1,41 @@
 /*jshint  esnext:true*/
+const DEBUG_IGNORED_EVENTS = true;
 const DESC_MAX_LENGTH = 140;
 const JIRA_LOGO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACRElEQVRYhbWXsUscQRTGf4iIyHHIISIWIsHisMgfkNIiBJFwiKQIkipVqpA/wEZEggSxEkmZwiKI5A84REKKkIMQrINYBQmHBDmEHJdNMW+42dk3d3O76wcDu2/e973vZvfN7EF+PAfaMjYL6AzFJFBRYh0gkdEBpryciuQVwjPgFugCu068CvQcAz1g2pnfEc6taOTGL6dIAjxw5nad+FsnvuhxrosYuPbElrz5Rc8Ucu9yfhcxsAncYZZ4fwTeO+HcUcILWgFqOXg1si9vFBrAXB7iEMySfYQZzGCeWxdoAq+Bh8BYjoJjwn0jWrYrqsOIbdIvUQLseTmPgHXgiYx1ibnYU3RuYpyfKMQ/mNWx+KzkfHHmZ4Tj55zGGNhQiAlw5OQ8VeYbzvxRQCNqUxoHLgMCa07eRyd+4sTXAtwrYCLGAJje1URugLrkVIHvMuyLVZccjfsitrhFMyD0k36bTtA/cOZkTuOckaOTFtA7IgEuSG9ONeBHILctWrnwGNO/mvA3zAk4LddaThfTpoXwKiBuVyL0yxPhloLtAUVCY7us4hb7IxQ/KLu4xWFE8cP7Kg6mld4PKH5BvoNrZBMfBphohKnFMAusyvU48ClgoA3M34eBUynwUu6ngK8BE1Gn3ihYccR79Jd5nuyXsx0rZRo498Q7mK8dMDudZuC8rOLLgQI7Ts5xIGe5DANbinCP9AfmEul/SnZslWHgTBFuKnna8a3lpRCzadSVWMiAj6GPIMbAX+/+H9BS8loyN4ibwX9j/jIXDkk+pgAAAABJRU5ErkJggg==';
 function stripDesc(str) {
-	if(!str)
+	if (!str)
 		return '';
 	return (str.length > DESC_MAX_LENGTH) ? str.slice(0, DESC_MAX_LENGTH - 3) + '...' : str;
 }
 
-function prepareAttachment({issue, user}, text) {
+function prepareAttachment({ issue, user }, text) {
 	let issueType = issue.fields.issuetype;
-	let authorName = user?user.displayName:'';
-	let author_icon = user?user.avatarUrls['24x24']:'';
+	let authorName = user ? user.displayName : '';
+	let author_icon = user ? user.avatarUrls['24x24'] : '';
 	let res = {
 		author_name: authorName
 		, author_icon: author_icon
 		, thumb_url: issueType.iconUrl
 	};
 	if (text) {
-		text = text.replace(/\{\{(user|issue)\.([^a-z_0-9]+)\}\}/g, (m, type, key) => (type==='user' ? user : issue)[key]);
+		text = text.replace(/\{\{(user|issue)\.([^a-z_0-9]+)\}\}/g, (m, type, key) => (type === 'user' ? user : issue)[key]);
 		res.text = text;
 	}
 	return res;
 }
 class Script {
-	process_incoming_request({request}) {
+	process_incoming_request({ request }) {
 		const data = request.content;
 		try {
-			console.log("event received");
-			console.log(JSON.stringify(data,null, 2));
 			if (!data.issue || (data.user && data.user.name === 'gitlab')) {
 				//we dont have enough info
-				let ignoreMsg="Not enough info on issue. Event ignored.";
-				if(data.webhookEvent){
-					ignoreMsg=`Jira event ${data.webhookEvent}. ${ignoreMsg}`;
+				if (DEBUG_IGNORED_EVENTS) {
+					let ignoreMsg = "Not enough info on issue. Event ignored.";
+					if (data.webhookEvent) {
+						ignoreMsg = `Jira event ${data.webhookEvent}. ${ignoreMsg}`;
+					}
+					console.log(ignoreMsg);
 				}
-				console.log(ignoreMsg);
 				return;
 			}
 			let issue = data.issue;
@@ -47,7 +48,6 @@ class Script {
 				, attachments: []
 			};
 
-			console.log("will try to process depending on webhookEvent");
 			if (data.webhookEvent === 'jira:issue_created') {
 				message.attachments.push(prepareAttachment(data, `*Created* ${issueSummary}:\n${stripDesc(issue.fields.description)}`));
 			} else if (data.webhookEvent === 'jira:issue_deleted') {
@@ -56,70 +56,63 @@ class Script {
 				if (data.changelog && data.changelog.items) { // field update
 					let logs = [];
 					data.changelog.items.forEach((change) => {
-						console.log("process "+JSON.stringify(change,null,2));
-						if (change.field.match('status|resolution|comment|priority') ) {
+						if (change.field.match('status|resolution|comment|priority')) {
 							return;
 						}
-						if (change.field==='description') {
-							console.log("addind description");
+						if (change.field === 'description') {
 							logs.push(`Changed *description* to:\n\`\`\`\n${stripDesc(change.toString)}\n\`\`\``);
-							console.log("added");
 						} else {
 							logs.push(`*${change.field}* changed from ${change.fromString} to *${change.toString}*`);
 						}
 					});
-					console.log("logs:"+logs.length);
 					logs.length && message.attachments.push(prepareAttachment(data, `*Updated* ${issueSummary}:\n  - ${logs.join('\n  - ')}`));
-					console.log("message:"+JSON.stringify(message,null,2));
 				} else {
 					//we dont have change logs
-					let ignoreMsg="No change log items. Event ignored.";
-					if(data.webhookEvent){
-						ignoreMsg=`Jira event ${data.webhookEvent}. ${ignoreMsg}`;
+					if (DEBUG_IGNORED_EVENTS) {
+						let ignoreMsg = "No change log items. Event ignored.";
+						if (data.webhookEvent) {
+							ignoreMsg = `Jira event ${data.webhookEvent}. ${ignoreMsg}`;
+						}
+						console.log(ignoreMsg);
 					}
-					console.log(ignoreMsg);
 					return;
 				}
 			} else if (data.webhookEvent === 'comment_created') {
 				let comment = data.comment;
-				console.log(comment);
-				let commentAuthoring=comment.author&&comment.author.displayName?` by ${comment.author.displayName}`:'';
-				data.user=comment.author;
+				let commentAuthoring = comment.author && comment.author.displayName ? ` by ${comment.author.displayName}` : '';
+				data.user = comment.author;
 				message.attachments.push(prepareAttachment(data, `Comment created for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
 			} else if (data.webhookEvent === 'comment_updated') {
 				let comment = data.comment;
-				console.log(comment);
-				let commentAuthoring=comment.author&&comment.author.displayName?` by ${comment.author.displayName}`:'';
-				data.user=comment.author;
+				let commentAuthoring = comment.author && comment.author.displayName ? ` by ${comment.author.displayName}` : '';
+				data.user = comment.author;
 				message.attachments.push(prepareAttachment(data, `Comment updated for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
 			} else if (data.webhookEvent === 'comment_deleted') {
 				let comment = data.comment;
-				console.log(comment);
-				let commentAuthoring=comment.author&&comment.author.displayName?` by ${comment.author.displayName}`:'';
-				data.user=comment.author;
+				let commentAuthoring = comment.author && comment.author.displayName ? ` by ${comment.author.displayName}` : '';
+				data.user = comment.author;
 				message.attachments.push(prepareAttachment(data, `Comment deleted for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
-			} else if (data.webhookEvent === 'worklog_created'){
-				let worklog=data.worklog;
-				let worklogAuthoring=worklog.author&&worklog.author.displayName?` by ${worklog.author.displayName}`:'';
-				data.user=worklog.author;
+			} else if (data.webhookEvent === 'worklog_created') {
+				let worklog = data.worklog;
+				let worklogAuthoring = worklog.author && worklog.author.displayName ? ` by ${worklog.author.displayName}` : '';
+				data.user = worklog.author;
 				message.attachments.push(prepareAttachment(data, `Worklog created for ${issueSummary}:\n\`\`\`\n${stripDesc(worklog.comment)}\n\`\`\`\n*time spent*: ${worklog.timeSpent}\n${worklogAuthoring}`));
 			} else {
 				//we dont have enough info
-				let ignoreMsg="No handler for the event. Event ignored.";
-				if(data.webhookEvent){
-					ignoreMsg=`Jira event ${data.webhookEvent}. ${ignoreMsg}`;
+				if (DEBUG_IGNORED_EVENTS) {
+					let ignoreMsg = "No handler for the event. Event ignored.";
+					if (data.webhookEvent) {
+						ignoreMsg = `Jira event ${data.webhookEvent}. ${ignoreMsg}`;
+					}
+					console.log(ignoreMsg);
 				}
-				console.log(ignoreMsg);
 				return;
 			}
 
-			console.log("will print depending on message.text:"+message.text+"<close>");
-			console.log("print message:"+JSON.stringify(message,null,2)+"<close>");
-
 			if (message.text || message.attachments.length) {
-				return {content:message};
+				return { content: message };
 			}
-		} catch(e) {
+		} catch (e) {
 			console.log('jiraevent error', e);
 			return {
 				error: {
