@@ -51,16 +51,21 @@ class Script {
 				if (data.changelog && data.changelog.items) { // field update
 					let logs = [];
 					data.changelog.items.forEach((change) => {
-						if (!change.field.match('status|resolution|comment|priority') ) {
+						console.log("process "+JSON.stringify(change,null,2));
+						if (change.field.match('status|resolution|comment|priority') ) {
 							return;
 						}
 						if (change.field==='description') {
-							logs.push(`Changed *description* to:\n${stripDesc(change.toString)}`);
+							console.log("addind description");
+							logs.push(`Changed *description* to:\n\`\`\`\n${stripDesc(change.toString)}\n\`\`\``);
+							console.log("added");
 						} else {
 							logs.push(`*${change.field}* changed from ${change.fromString} to *${change.toString}*`);
 						}
 					});
+					console.log("logs:"+logs.length);
 					logs.length && message.attachments.push(prepareAttachment(data, `*Updated* ${issueSummary}:\n  - ${logs.join('\n  - ')}`));
+					console.log("message:"+JSON.stringify(message,null,2));
 				}
 
 				if (data.comment) { // comment update
