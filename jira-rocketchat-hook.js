@@ -11,6 +11,7 @@ function prepareAttachment({issue, user}, text) {
 		author_name: user.displayName
 		, author_icon: user.avatarUrls['24x24']
 		, thumb_url: issueType.iconUrl
+		, ts: issue.fields.created
 	};
 	if (text) {
 		text = text.replace(/\{\{(user|issue)\.([^a-z_0-9]+)\}\}/g, (m, type, key) => (type==='user' ? user : issue)[key]);
