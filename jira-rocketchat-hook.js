@@ -74,6 +74,9 @@ class Script {
 				let commentAuthoring=comment.author&&comment.author.displayName?` by ${comment.author.displayName}`:'';
 				data.user=comment.author;
 				message.attachments.push(prepareAttachment(data, `Comment Created for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
+			} else if (data.webhookEvent === 'issuelink_created' || data.webhookEvent === 'issuelink_deleted'){
+				//we dont do nothing cause the payload doesnt have enough info
+				return {};
 			}
 
 			console.log("will print depending on message.text:"+message.text+"<close>");
