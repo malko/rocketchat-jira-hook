@@ -92,11 +92,6 @@ class Script {
 				let commentAuthoring = comment.author && comment.author.displayName ? ` by ${comment.author.displayName}` : '';
 				data.user = comment.author;
 				message.attachments.push(prepareAttachment(data, `Comment deleted for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
-			} else if (data.webhookEvent === 'worklog_created') {
-				let worklog = data.worklog;
-				let worklogAuthoring = worklog.author && worklog.author.displayName ? ` by ${worklog.author.displayName}` : '';
-				data.user = worklog.author;
-				message.attachments.push(prepareAttachment(data, `Worklog created for ${issueSummary}:\n\`\`\`\n${stripDesc(worklog.comment)}\n\`\`\`\n*time spent*: ${worklog.timeSpent}\n${worklogAuthoring}`));
 			} else {
 				//we dont have enough info
 				if (DEBUG_IGNORED_EVENTS) {
