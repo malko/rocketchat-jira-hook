@@ -29,7 +29,12 @@ class Script {
 			console.log("event received");
 			console.log(JSON.stringify(data,null, 2));
 			if (!data.issue || (data.user && data.user.name === 'gitlab')) {
-				console.log("event ignored");
+				//we dont have enough info
+				let ignoreMsg="Not enough info on issue. Event ignored.";
+				if(data.webhookEvent){
+					ignoreMsg=`Event ${data.webhookEvent}. ${ignoreMsg}`;
+				}
+				console.log(ignoreMsg);
 				return;
 			}
 			let issue = data.issue;
@@ -79,9 +84,19 @@ class Script {
 				let commentAuthoring=comment.author&&comment.author.displayName?` by ${comment.author.displayName}`:'';
 				data.user=comment.author;
 				message.attachments.push(prepareAttachment(data, `Comment Created for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
-			} else if (data.webhookEvent === 'issuelink_created' || data.webhookEvent === 'issuelink_deleted'){
-				//we dont do nothing cause the payload doesnt have enough info
-				return {};
+			} else if (data.webhookEvent === 'worklog_created'){
+				let worklog=data.worklog;
+				let worklogAuthoring=worklog.author&&worklog.author.displayName?` by ${worklog.author.displayName}`:'';
+				data.user=worklog.author;
+				message.attachments.push(prepareAttachment(data, `Worklog created for ${issueSummary}:\n\`\`\`\n${stripDesc(worklog.comment)}\n\`\`\`\n*time spent*: ${worklog.timeSpent}\n${worklogAuthoring}`));
+			} else {
+				//we dont have enough info
+				let ignoreMsg="No handler for event. Event ignored.";
+				if(data.webhookEvent){
+					ignoreMsg=`Event ${data.webhookEvent}. ${ignoreMsg}`;
+				}
+				console.log(ignoreMsg);
+				return;
 			}
 
 			console.log("will print depending on message.text:"+message.text+"<close>");
