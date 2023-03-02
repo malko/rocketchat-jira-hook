@@ -10,7 +10,7 @@ function stripDesc(str) {
 function prepareAttachment({issue, user}, text) {
 	let issueType = issue.fields.issuetype;
 	let authorName = user?user.displayName:'';
-	let author_icon = user? user.avatarUrls['24x24']:'';
+	let author_icon = user?user.avatarUrls['24x24']:'';
 	let res = {
 		author_name: authorName
 		, author_icon: author_icon
