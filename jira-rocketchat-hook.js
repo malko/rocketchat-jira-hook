@@ -56,9 +56,6 @@ class Script {
 				if (data.changelog && data.changelog.items) { // field update
 					let logs = [];
 					data.changelog.items.forEach((change) => {
-						if (change.field.match('status|resolution|comment|priority')) {
-							return;
-						}
 						if (change.field === 'description') {
 							logs.push(`Changed *description* to:\n\`\`\`\n${stripDesc(change.toString)}\n\`\`\``);
 						} else {
