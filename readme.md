@@ -10,4 +10,5 @@ THIS IS A FORK ON THE ORIGINAL REPOSITORY HERE https://github.com/malko/rocketch
 Use this script in place of the original if you want to include handling for:
 - Description updates now handled
 - Create, Update and Delete Comments
-- Control on log for not handled/ignored events
+- Control log for not handled/ignored events DEBUG_IGNORED_EVENTS (default true)
+- Control log for the payload of not handled/ignored events PRINT_PAYLOAD_IF_IGNORED (default false)
