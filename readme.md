@@ -5,10 +5,5 @@ Add jira notifications via a new WebHook in Rocket.Chat
 This repository only contains a single  rocket chat integration script.
 Go there https://rocket.chat/docs/administrator-guides/integrations/jira for more info about using it.
 
-THIS IS A FORK ON THE ORIGINAL REPOSITORY HERE https://github.com/malko/rocketchat-jira-hook
-
-Use this script in place of the original if you want to include handling for:
-- Description updates now handled
-- Create, Update and Delete Comments
-- Control log for not handled/ignored events DEBUG_IGNORED_EVENTS (default true)
-- Control log for the payload of not handled/ignored events PRINT_PAYLOAD_IF_IGNORED (default false)
+# Need for maintainers
+I don't use Jira nor RocketChat anymore, but still maintain this repository by accepting tested PR from contributors. If you are an active user of this script and want to take over you're welcome as I have very not much time for this project, and can't test the script on my side. Don't hesitate to contact me or to comment on the related issue [#11](https://github.com/malko/rocketchat-jira-hook/issues/11)
