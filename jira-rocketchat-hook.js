@@ -11,11 +11,9 @@ function stripDesc(str) {
 
 function prepareAttachment({ issue, user }, text) {
 	let issueType = issue.fields.issuetype;
-	let authorName = user ? user.displayName : '';
-	let author_icon = user ? user.avatarUrls['24x24'] : '';
 	let res = {
-		author_name: authorName
-		, author_icon: author_icon
+		author_name: user ? user.displayName : ''
+		, author_icon: user ? user.avatarUrls['24x24'] : ''
 		, thumb_url: issueType.iconUrl
 		, ts: issue.fields.created
 	};
@@ -45,8 +43,9 @@ class Script {
 			}
 			let issue = data.issue;
 			let baseJiraUrl = issue.self.replace(/\/rest\/.*$/, '');
-			let user = data.user;
-			let assignedTo = (issue.fields.assignee && issue.fields.assignee.name && user.name && issue.fields.assignee.name !== user.name) ? `, assigned to ${issue.fields.assignee.displayName}` : '';
+			let assignee = issue.fields.assignee || {}
+			let user = data.user || {};
+			let assignedTo = (assignee.name !== user.name) ? `, assigned to ${issue.fields.assignee.displayName}` : '';
 			let issueSummary = `[${issue.key}](${baseJiraUrl}/browse/${issue.key}) ${issue.fields.summary} _(${issue.fields.priority.name.replace(/^\s*\d*\.\s*/, '')}${assignedTo})_`;
 			let message = {
 				icon_url: (issue.fields.project && issue.fields.project.avatarUrls && issue.fields.project.avatarUrls['48x48']) || JIRA_LOGO
