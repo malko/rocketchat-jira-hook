@@ -58,24 +58,21 @@ class Script {
 				message.attachments.push(prepareAttachment(data, `*Deleted* ${issueSummary}`));
 			} else if (data.webhookEvent === 'jira:issue_updated') {
 				if (data.issue_event_type_name === 'issue_commented') {
-				let comment = data.comment;
-				let commentAuthoring = comment.author && comment.author.displayName ? ` by ${comment.author.displayName}` : '';
-				data.user = comment.author;
-				message.attachments.push(prepareAttachment(data, `Comment created for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
-				}
-				else if (data.issue_event_type_name === 'issue_comment_deleted') {
+					let comment = data.comment;
+					let commentAuthoring = comment.author && comment.author.displayName ? ` by ${comment.author.displayName}` : '';
+					data.user = comment.author;
+					message.attachments.push(prepareAttachment(data, `Comment created for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
+				} else if (data.issue_event_type_name === 'issue_comment_deleted') {
 					let comment = data.comment;
 					let commentAuthoring = comment.author && comment.author.displayName ? ` by ${comment.author.displayName}` : '';
 					data.user = comment.author;
 					message.attachments.push(prepareAttachment(data, `Comment deleted for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));	
-				}
-				else if (data.issue_event_type_name === 'issue_comment_edited') {
+				} else if (data.issue_event_type_name === 'issue_comment_edited') {
 					let comment = data.comment;
 					let commentAuthoring = comment.author && comment.author.displayName ? ` by ${comment.author.displayName}` : '';
 					data.user = comment.author;
 					message.attachments.push(prepareAttachment(data, `Comment updated for ${issueSummary}:\n\`\`\`\n${stripDesc(comment.body)}\n\`\`\`\n${commentAuthoring}`));
-					}
-				else if (data.changelog && data.changelog.items) { // Comment
+				} else if (data.changelog && data.changelog.items) { // Comment
 					let logs = [];
 					data.changelog.items.forEach((change) => {
 						if (change.field === 'description') {
@@ -99,7 +96,7 @@ class Script {
 					}
 					return;
 				}
-			} else if (data.webhookEvent === 'issue_commented') {
+			} else if (data.webhookEvent === 'issue_commented' || data.webhookEvent === 'comment_created') {
 				let comment = data.comment;
 				let commentAuthoring = comment.author && comment.author.displayName ? ` by ${comment.author.displayName}` : '';
 				data.user = comment.author;
